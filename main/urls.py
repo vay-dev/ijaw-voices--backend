@@ -8,7 +8,7 @@ from drf_spectacular.views import (
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("auth/", include("authentication.urls")),
+    path("api/auth/", include("authentication.urls")),
     # Swagger / OpenAPI endpoints
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(

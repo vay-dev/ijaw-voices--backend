@@ -10,7 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # Load environment variables from .env file
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,11 +27,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = "django-insecure-&!p4geg4bngnwtb)gp*5w-gr(aop1o1(7e(&u6lfy9#4cma43k"
 
+RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200",
+]
+
+
+CORS_ALLOW_CREDENTIALS = True
 
 # Application definition
 
@@ -39,6 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "rest_framework",
     "rest_framework_simplejwt",
+    'corsheaders',
     "drf_spectacular",
     "authentication",
 ]
@@ -48,6 +62,7 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
+    'corsheaders.middleware.CorsMiddleware',
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -73,10 +88,12 @@ REST_FRAMEWORK = {
         "user": "1000/hour",
         # Tight limits for auth security
         "register": "5/hour",  # 5 registrations per IP per hour (anti-spam)
-        "verify_otp": "10/minute",  # 10 OTP attempts per IP per minute (anti-brute-force)
+        # 10 OTP attempts per IP per minute (anti-brute-force)
+        "verify_otp": "10/minute",
+        # 10 login per IP per minute (anti-brute-force)
+        "login": "10/minute",
     },
 }
-from datetime import timedelta
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(days=1),
@@ -158,25 +175,30 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
+
+# Where collectstatic will collect all static files for production
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# Email configuration (development)
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-# For production
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your-email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your-app-password'
+# Email configuration - Gmail SMTP
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")  # Your Gmail address
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")  # Your App Password
 
 # Default from email (used when sending OTP)
-DEFAULT_FROM_EMAIL = "Ijaw Voices <no-reply@ijawvoices.com>"
+DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER", "noreply@ijawvoices.com")
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Ijaw Voices API",

@@ -42,7 +42,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     )  ## provided by frontend
     is_verified = models.BooleanField(default=False)
 
-    otp_code = models.CharField(max_length=4, blank=True, null=True)
+    otp_code = models.CharField(max_length=6, blank=True, null=True)
     otp_created_at = models.DateTimeField(null=True, blank=True)
     otp_expiry = models.DateTimeField(null=True, blank=True)
 

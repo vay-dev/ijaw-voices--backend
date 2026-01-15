@@ -1,9 +1,10 @@
-import random
 import secrets
-from django.core.mail import send_mail
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
+import resend
+
+resend.api_key = settings.RESEND_API_KEY
 
 
 def generate_and_send_otp(user):
@@ -18,48 +19,93 @@ def generate_and_send_otp(user):
     # Set OTP fields
     user.otp_code = otp
     user.otp_created_at = timezone.now()
-    user.otp_expiry = user.otp_created_at + timedelta(minutes=10)  # 10 min expiry
+    user.otp_expiry = user.otp_created_at + \
+        timedelta(minutes=10)  # 10 min expiry
     user.save(update_fields=["otp_code", "otp_created_at", "otp_expiry"])
 
     # Email content
-    subject = "Your Language App Verification Code"
-    message = (
-        f"Hello {user.first_name or 'there'},\n\n"
-        f"Your verification code is: **{otp}**\n\n"
-        "This code will expire in 10 minutes.\n"
-        "If you didn't request this, please ignore this email.\n\n"
-        "Happy learning!\n"
-        "The Language App Team"
-    )
+    subject = "Your Ijaw Voices Verification Code"
 
     html_message = f"""
+    <!DOCTYPE html>
     <html>
-      <body>
-        <h2>Welcome to Language App!</h2>
+     <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      body {{ font-family: Arial, Helvetica, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4; }}
+      .container {{ max-width: 600px; margin: 0 auto; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }}
+      .header {{ background: #1a1a1a; color: white; padding: 20px; text-align: center; }}
+      .header h1 {{ margin: 0; font-size: 28px; }}
+      .content {{ padding: 30px 24px; text-align: center; }}
+      .otp-box {{
+        font-size: 48px;
+        font-weight: bold;
+        letter-spacing: 12px;
+        background: #f8f8f8;
+        padding: 20px;
+        border-radius: 12px;
+        margin: 24px 0;
+        display: inline-block;
+      }}
+      .footer {{ background: #f8f8f8; padding: 20px; font-size: 14px; color: #666; text-align: center; }}
+      .btn {{
+        display: inline-block;
+        background: #000;
+        color: white;
+        padding: 12px 32px;
+        text-decoration: none;
+        border-radius: 999px;
+        margin-top: 16px;
+      }}
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <div class="header">
+        <h1>Ijaw Voices</h1>
+      </div>
+
+      <!-- Main content -->
+      <div class="content">
+        <h2>Welcome to Ijaw Voices!</h2>
         <p>Hello {user.first_name or 'there'},</p>
-        <p>Your verification code is:</p>
-        <h1 style="letter-spacing: 8px; font-size: 36px; font-weight: bold;">{otp}</h1>
+        <p>You're almost there! Use this verification code to complete your sign-up:</p>
+
+        <div class="otp-box">{otp}</div>
+
         <p>This code will expire in <strong>10 minutes</strong>.</p>
-        <p>If you didn't sign up, please ignore this email.</p>
-        <br>
-        <p>Happy learning!<br>The Language App Team</p>
-      </body>
+        <p>If you didn't request this code, please ignore this email — your account is safe.</p>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">
+        <p>Happy learning!<br>The Ijaw Voices Team</p>
+        <p style="margin-top: 12px; font-size: 12px;">
+          © {timezone.now().year} Ijaw Voices. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </body>
     </html>
     """
 
     try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[user.email],
-            html_message=html_message,
-            fail_silently=False,  # For dev, better to see errors
-        )
+        # Use Resend API to send email
+        params = {{
+            "from": settings.DEFAULT_FROM_EMAIL,
+            "to": [user.email],
+            "subject": subject,
+            "html": html_message,
+        }}
+
+        resend.Emails.send(params)
+        print(f"Email sent successfully to {{user.email}}")
         return otp  # Return for testing/debugging
     except Exception as e:
-        # In production, you might want to log this instead of raising
-        print(f"Failed to send OTP email to {user.email}: {str(e)}")
+        # Log the error for debugging
+        print(f"Failed to send OTP email to {{user.email}}: {{e}}")
         return None
 
 

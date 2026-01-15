@@ -8,4 +8,6 @@ dependencies = [
     "django>=5.2.10",
     "django-cors-headers>=4.9.0",
     "drf-spectacular>=0.29.0",
+    "python-dotenv>=1.2.1",
+    "resend>=2.19.0",
 ]

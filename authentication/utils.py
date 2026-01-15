@@ -2,9 +2,7 @@ import secrets
 from django.conf import settings
 from django.utils import timezone
 from datetime import timedelta
-import resend
-
-resend.api_key = settings.RESEND_API_KEY
+from django.core.mail import send_mail
 
 
 def generate_and_send_otp(user):
@@ -92,20 +90,20 @@ def generate_and_send_otp(user):
     """
 
     try:
-        # Use Resend API to send email
-        params = {{
-            "from": settings.DEFAULT_FROM_EMAIL,
-            "to": [user.email],
-            "subject": subject,
-            "html": html_message,
-        }}
-
-        resend.Emails.send(params)
-        print(f"Email sent successfully to {{user.email}}")
+        # Use Django's send_mail with Gmail SMTP
+        send_mail(
+            subject=subject,
+            message=f"Your verification code is: {otp}\n\nThis code will expire in 10 minutes.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            html_message=html_message,
+            fail_silently=False,
+        )
+        print(f"Email sent successfully to {user.email}")
         return otp  # Return for testing/debugging
     except Exception as e:
         # Log the error for debugging
-        print(f"Failed to send OTP email to {{user.email}}: {{e}}")
+        print(f"Failed to send OTP email to {user.email}: {e}")
         return None
 
 

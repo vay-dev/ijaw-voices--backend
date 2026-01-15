@@ -188,13 +188,17 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
-# Email configuration
-# Using Resend for email delivery - configured in authentication/utils.py
-# No Django email backend needed since we're using Resend API directly
+# Email configuration - Gmail SMTP
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")  # Your Gmail address
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")  # Your App Password
 
 # Default from email (used when sending OTP)
-# IMPORTANT: This email must be verified in your Resend dashboard
-DEFAULT_FROM_EMAIL = "Ijaw Voices <onboarding@resend.dev>"  # Change to your verified domain
+DEFAULT_FROM_EMAIL = os.getenv("EMAIL_HOST_USER", "noreply@ijawvoices.com")
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "Ijaw Voices API",
